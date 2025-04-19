@@ -1,0 +1,97 @@
+local ESPEnabled = false
+local Boxes = {}
+
+local function CreateESP(plr)
+    if plr == game.Players.LocalPlayer then return end
+    if Boxes[plr] then return end
+
+    local Settings = {
+        Box_Color = Color3.fromRGB(255, 0, 0),
+        Box_Thickness = 2,
+        Team_Check = false,
+        Team_Color = false,
+        Autothickness = true
+    }
+
+    local Camera = workspace.CurrentCamera
+
+    local function NewLine()
+        local line = Drawing.new("Line")
+        line.Visible = false
+        line.Color = Settings.Box_Color
+        line.Thickness = Settings.Box_Thickness
+        return line
+    end
+
+    local Library = {
+        TL1 = NewLine(), TL2 = NewLine(),
+        TR1 = NewLine(), TR2 = NewLine(),
+        BL1 = NewLine(), BL2 = NewLine(),
+        BR1 = NewLine(), BR2 = NewLine()
+    }
+
+    Boxes[plr] = Library
+
+    coroutine.wrap(function()
+        game:GetService("RunService").RenderStepped:Connect(function()
+            if not ESPEnabled then
+                for _, v in pairs(Library) do v.Visible = false end
+                return
+            end
+
+            if not plr.Character or not plr.Character:FindFirstChild("HumanoidRootPart") then return end
+
+            local hrp = plr.Character.HumanoidRootPart
+            local pos, onscreen = Camera:WorldToViewportPoint(hrp.Position)
+            if not onscreen then
+                for _, v in pairs(Library) do v.Visible = false end
+                return
+            end
+
+            local size = Vector2.new(50, 100)
+            local topLeft = Vector2.new(pos.X - size.X / 2, pos.Y - size.Y / 2)
+            local topRight = Vector2.new(pos.X + size.X / 2, pos.Y - size.Y / 2)
+            local bottomLeft = Vector2.new(pos.X - size.X / 2, pos.Y + size.Y / 2)
+            local bottomRight = Vector2.new(pos.X + size.X / 2, pos.Y + size.Y / 2)
+
+            Library.TL1.From = topLeft
+            Library.TL1.To = Vector2.new(topLeft.X + 10, topLeft.Y)
+            Library.TL2.From = topLeft
+            Library.TL2.To = Vector2.new(topLeft.X, topLeft.Y + 10)
+
+            Library.TR1.From = topRight
+            Library.TR1.To = Vector2.new(topRight.X - 10, topRight.Y)
+            Library.TR2.From = topRight
+            Library.TR2.To = Vector2.new(topRight.X, topRight.Y + 10)
+
+            Library.BL1.From = bottomLeft
+            Library.BL1.To = Vector2.new(bottomLeft.X + 10, bottomLeft.Y)
+            Library.BL2.From = bottomLeft
+            Library.BL2.To = Vector2.new(bottomLeft.X, bottomLeft.Y - 10)
+
+            Library.BR1.From = bottomRight
+            Library.BR1.To = Vector2.new(bottomRight.X - 10, bottomRight.Y)
+            Library.BR2.From = bottomRight
+            Library.BR2.To = Vector2.new(bottomRight.X, bottomRight.Y - 10)
+
+            for _, line in pairs(Library) do
+                line.Visible = true
+            end
+        end)
+    end)()
+end
+
+for _, player in pairs(game.Players:GetPlayers()) do
+    CreateESP(player)
+end
+
+game.Players.PlayerAdded:Connect(CreateESP)
+
+VisualTab:CreateToggle({
+    Name = "ESP Boxes",
+    CurrentValue = false,
+    Flag = "ESPBoxes",
+    Callback = function(Value)
+        ESPEnabled = Value
+    end,
+})
