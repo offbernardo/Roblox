@@ -30,7 +30,7 @@ local RequiredDistance, Typing, Running, Animation, ServiceConnections = 2000, f
 --// Script Settings
 
 Environment.Settings = {
-	Enabled = true,
+	Enabled = false,
 	TeamCheck = false,
 	AliveCheck = true,
 	WallCheck = false, -- Laggy
